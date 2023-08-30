@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block content %}
+<h1>Search Recipes</h1>
+
+<form class="me-3" action="{{ url_for('search_recipes') }}" method="GET">
+  <input
+    type="text"
+    class="form-control"
+    name="ingredient"
+    placeholder="Search recipes..."
+  />
+  <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+{% if recipes %}
+<h2>Recipes</h2>
+<ul>
+  {% for recipe in recipes %}
+  <li>
+    <a href="{{ url_for('recipe_detail', recipe_id=recipe['id']) }}"
+      >{{ recipe['title'] }}</a
+    >
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No recipes found.</p>
+{% endif %} {% endblock %}

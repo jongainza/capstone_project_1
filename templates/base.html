@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://bootswatch.com/4/flatly/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/fontawesome.min.css"
+    />
+    <!-- ... -->
+    <style>
+      /* Custom styles */
+      body {
+        margin: 0;
+        padding: 0;
+
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      .header-container {
+        background-color: rgba(255, 255, 255, 0.9);
+        background-image: url("https://media.istockphoto.com/id/1402004971/photo/healthy-heart-food-high-in-flavonoids-and-polyphenols.jpg?b=1&s=612x612&w=0&k=20&c=-8HS5yzko3yqKmpWnvJ9YvuLCMW8ZWdzOWWUJv_kTdQ=");
+        background-size: 100% auto;
+        background-repeat: no-repeat;
+        background-position: center bottom;
+        background-attachment: fixed;
+        padding: 10px;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header-links {
+        display: flex;
+        gap: 10px;
+      }
+
+      .content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .footer {
+        padding: 20px;
+        background-color: #f8f9fa;
+        margin-top: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header-container">
+      <header class="header">
+        <div class="header-logo">
+          <h1>Your Recipe App</h1>
+          <p>Discover, Cook, and Enjoy!</p>
+        </div>
+        <div class="header-links">
+          <!-- <form
+            class="me-3"
+            action="{{ url_for('search_recipes') }}"
+            method="GET"
+          >
+            <input
+              type="text"
+              class="form-control"
+              name="ingredient"
+              placeholder="Search recipes..."
+            />
+            <a href="/recipe" class="btn btn-primary me-2">Search</a>
+          </form> -->
+          {% if not g.user %}
+          <li>
+            <a href="/register" class="btn btn-outline-light ms-2">Sign Up</a>
+          </li>
+          <li><a href="/login" class="btn btn-outline-light">Login</a></li>
+          {% else %}
+          <li>
+            <a href="/users/{{ g.user.id }}">
+              <img src="{{ g.user.image_url }}" alt="{{ g.user.username }}" />
+            </a>
+          </li>
+          <li><a href="/logout">Log out</a></li>
+          {% endif %}
+        </div>
+      </header>
+    </div>
+
+    <div class="container mt-5">
+      {% for msg in get_flashed_messages() %}
+      <div>{{msg}}</div>
+      {% endfor %} {% block content %}{% endblock %}
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <p>&copy; 2023 Your Recipe App. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <!-- ... -->
+  </body>
+</html>
