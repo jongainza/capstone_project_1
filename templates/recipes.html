@@ -1,5 +1,4 @@
 {% extends "base.html" %} {% block content %}
-<h1>Search Recipes</h1>
 
 <form class="me-3" action="{{ url_for('search_recipes') }}" method="GET">
   <input
@@ -11,17 +10,23 @@
   <button type="submit" class="btn btn-primary">Search</button>
 </form>
 
-{% if recipes %}
-<h2>Recipes</h2>
+{% if api_recipes %}
+<h2>{{ ingredient }} Recipes</h2>
 <ul>
-  {% for recipe in recipes %}
+  {% for recipe in api_recipes %}
   <li>
-    <a href="{{ url_for('recipe_detail', recipe_id=recipe['id']) }}"
-      >{{ recipe['title'] }}</a
-    >
+    <a href="/recipe/api/{{recipe.id}}">{{ recipe.title }}</a>
   </li>
   {% endfor %}
 </ul>
 {% else %}
 <p>No recipes found.</p>
+{% endif %} {% if db_recipes %}
+<ul>
+  {% for recipe in db_recipes %}
+  <li>
+    <a href="/recipe/db/{{recipe.id}}">{{ recipe.title }}</a>
+  </li>
+  {% endfor %}
+</ul>
 {% endif %} {% endblock %}

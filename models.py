@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -15,7 +16,7 @@ def connect_db(app):
 
 class User(db.Model):
     __tablename__ = "users"
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.Text, unique=True, nullable=False)
     image_url = db.Column(
         db.Text,
@@ -28,6 +29,7 @@ class User(db.Model):
     user_generated_recipes = db.relationship(
         "UserGeneratedRecipe", backref="user", lazy=True
     )
+    comments = db.relationship("Comment", backref="user", lazy=True)
 
     @classmethod
     def register(cls, username, password, email, image_url):
@@ -38,15 +40,9 @@ class User(db.Model):
         hashed_utf8 = hashed.decode("utf8")
 
         # return instance of user w/username and hashed pwd
-        user = User(
-            username=username,
-            password=hashed_utf8,
-            email=email,
-            image_url=image_url,
+        return cls(
+            username=username, password=hashed_utf8, email=email, image_url=image_url
         )
-
-        db.session.add(user)
-        return user
 
     @classmethod
     def authenticate(cls, username, password):
@@ -123,4 +119,22 @@ class UserGeneratedInstruction(db.Model):
     step = db.Column(db.Text, nullable=False)
     user_generated_recipe_id = db.Column(
         db.Integer, db.ForeignKey("user_recipes.id"), nullable=False
+    )
+
+
+class Comment(db.Model):
+    __tablename__ = "comments"
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    recipe_id = db.Column(
+        db.Integer, db.ForeignKey("recipes.id"), nullable=True
+    )  # To store either a recipe ID or an API recipe ID
+    parent_id = db.Column(
+        db.Integer, db.ForeignKey("comments.id"), nullable=True
+    )  # For threaded comments
+    timestamp = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow(),
     )

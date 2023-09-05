@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField
-from wtforms.validators import InputRequired, Email
+from wtforms import StringField, PasswordField, TextAreaField, SubmitField
+from wtforms.validators import InputRequired, Email, DataRequired
 
 
 class RegistrationForm(FlaskForm):
@@ -13,3 +13,8 @@ class RegistrationForm(FlaskForm):
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[InputRequired()])
     password = PasswordField("Password", validators=[InputRequired()])
+
+
+class CommentForm(FlaskForm):
+    text = TextAreaField("Comment", validators=[DataRequired()])
+    submit = SubmitField("Post Comment")

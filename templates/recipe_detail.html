@@ -5,19 +5,77 @@
 
 <h2>Ingredients</h2>
 <ul>
-  {% for ingredient in recipe.extendedIngredients %}
+  {% if recipe.extendedIngredients %} {% for ingredient in
+  recipe.extendedIngredients %}
   <li>{{ ingredient.original }}</li>
-  {% endfor %}
+  {% endfor %} {% else %} {% for ingredient in recipe.ingredients %}
+  <li>{{ ingredient.name }}</li>
+  {% endfor %} {% endif %}
 </ul>
 
 <h2>Instructions</h2>
 <ol>
-  {% for step in recipe.analyzedInstructions[0].steps %}
+  {% if recipe.analyzedInstructions %} {% for step in
+  recipe.analyzedInstructions[0].steps %}
   <li>{{ step.step }}</li>
-  {% endfor %}
+  {% endfor %} {% else %} {% for step in recipe.instructions %}
+  <li>{{ step.step }}</li>
+  {% endfor %} {% endif %}
 </ol>
 
-<a href="{{ url_for('search_recipes') }}" class="btn btn-primary"
+<div class="container mt-4">
+  <h2>Comments:</h2>
+  <ul>
+    {% for comment in comments %}
+    <li>
+      <strong>{{ comment.user.username }}</strong>
+      <span>{{ comment.timestamp.strftime("%Y-%m-%d %H:%M:%S") }}</span>
+      <p>{{ comment.text }}</p>
+      {% if g.user %} {% if comments|length > 1 %}
+      <a href="#" class="reply-link" data-comment-id="{{ comment.id }}"
+        >Reply</a
+      >
+      <div class="reply-form hidden" id="reply-form-{{ comment.id }}">
+        <form method="POST" action="/recipe/{{ recipe.id }}/comment">
+          {{ form.hidden_tag() }} {{ form.hidden_tag("parent_id", comment.id) }}
+          <div class="form-group">
+            {{ form.text.label(class="form-label") }} {{
+            form.text(class="form-control") }}
+          </div>
+          <button type="submit" class="btn btn-primary">Post Reply</button>
+        </form>
+      </div>
+      {% endif %} {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% if g.user %}
+  <h2>Add a Comment:</h2>
+  <form method="POST" action="/recipe/{{ recipe.id }}/comment">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+      {{ form.text.label(class="form-label") }} {{
+      form.text(class="form-control") }}
+    </div>
+    <button type="submit" class="btn btn-primary">Post Comment</button>
+  </form>
+  {% else %}
+  <p>You can <a href="/login">log in</a> to post a comment.</p>
+  {% endif %}
+</div>
+
+<a href="{{ url_for('search_recipes') }}" class="btn btn-secondary"
   >Back to Search</a
 >
-{% endblock %}
+{% if saved_recipe %}
+<a
+  href="{{ url_for('unsave_recipe', recipe_id=recipe.id) }}"
+  class="btn btn-danger"
+  >Unsave Recipe</a
+>
+{% else %}
+<form action="{{ url_for('save_recipe', recipe_id=recipe.id) }}" method="POST">
+  <button type="submit" class="btn btn-primary">Save Recipe</button>
+</form>
+{% endif %} {% endblock %}
+<script src="javascript.js"></script>

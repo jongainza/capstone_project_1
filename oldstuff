@@ -1,0 +1,190 @@
+# User Interaction
+@app.route("/recipe/<int:recipe_id>/save", methods=["GET", "POST"])
+def save_recipe(recipe_id):
+    # Fetch recipe details from the API
+    url = f"https://api.spoonacular.com/recipes/{recipe_id}/information"
+    params = {"apiKey": spoonacular_api_key}
+
+    response = requests.get(url, params=params)
+    recipe_data = response.json()
+
+    # Extract relevant recipe details
+    recipe_title = recipe_data["title"]
+    recipe_image = recipe_data["image"]
+    ingredient_names = [
+        ingredient["name"] for ingredient in recipe_data["extendedIngredients"]
+    ]
+    instruction_steps = [
+        step["step"] for step in recipe_data["analyzedInstructions"][0]["steps"]
+    ]
+
+    # Check if the recipe already exists in the database
+    db_recipe = Recipe.query.get(recipe_id)
+
+    if not db_recipe:
+        # Create a new Recipe instance
+        new_recipe = Recipe(title=recipe_title, image=recipe_image)
+        db.session.add(new_recipe)
+        db.session.commit()
+
+        # Create Ingredient instances and link them to the Recipe instance
+        for ingredient_name in ingredient_names:
+            new_ingredient = Ingredient(name=ingredient_name, recipe_id=new_recipe.id)
+            db.session.add(new_ingredient)
+
+        # Create Instruction instances and link them to the Recipe instance
+        for step in instruction_steps:
+            new_instruction = Instruction(step=step, recipe_id=new_recipe.id)
+            db.session.add(new_instruction)
+
+        # Get the user's ID from the session
+        user_id = session.get(CURR_USER_KEY)
+
+        # Update User's Saved Recipes
+        if user_id:
+            user = User.query.get(user_id)
+            if user:
+                saved_recipe = SavedRecipe(recipe_id=new_recipe.id, user_id=user_id)
+                # Swap recipe and user
+                db.session.add(saved_recipe)
+                db.session.commit()
+                flash("Recipe saved successfully!", "success")
+            else:
+                flash("User not found!", "error")
+        else:
+            flash("User not authenticated!", "error")
+    else:
+        flash("Recipe is already saved!", "info")
+
+    return redirect(f"/profile/{g.user.id}")
+
+
+@app.route("/recipe/<int:recipe_id>/unsave")
+def unsave_recipe(recipe_id):
+    # Remove the saved recipe from the user's profile
+
+    if not g.user:
+        flash("Access Unauthoried", "Danger")
+        return redirect("/register")
+
+    recipe = Recipe.query.get(recipe_id)
+    ingredients = Ingredient.query.filter_by(recipe_id=recipe_id).all()
+    instructions = Instruction.query.filter_by(recipe_id=recipe_id).all()
+
+    saved_recipes = SavedRecipe.query.filter_by(recipe_id=recipe_id).all()
+    for saved_recipe in saved_recipes:
+        db.session.delete(saved_recipe)
+    for ingredient in ingredients:
+        db.session.delete(ingredient)
+    for instruction in instructions:
+        db.session.delete(instruction)
+    db.session.delete(recipe)
+    db.session.commit()
+    flash("Recipe delated succesfully", "success")
+    return redirect(f"/profile/{g.user.id}")
+
+
+@app.route("/recipe/<int:recipe_id>/comment", methods=["POST"])
+def post_comment(recipe_id):
+    # Handle user comment submission and add to the database
+    # Check if the user is logged in
+    if not g.user:
+        flash("You must be logged in to post a comment", "danger")
+        return redirect("/login")
+
+    # Get the form data
+    text = request.form.get("text")
+    parent_id = request.form.get("parent_id")
+
+    if text:
+        # Check if this is a reply to an existing comment
+        if parent_id is not None:
+            parent_comment = Comment.query.get(parent_id)
+            if parent_comment:
+                comment = Comment(
+                    text=text,
+                    user_id=g.user.id,
+                    recipe_id=recipe_id,
+                    parent_id=parent_comment.id,
+                    timestamp=datetime.utcnow(),
+                )
+                db.session.add(comment)
+                db.session.commit()
+                flash("Reply posted successfully!", "success")
+            else:
+                flash("Parent comment not found", "danger")
+        else:
+            # Handle regular comments
+            comment = Comment(
+                text=text,
+                user_id=g.user.id,
+                recipe_id=recipe_id,
+                timestamp=datetime.utcnow(),
+            )
+            db.session.add(comment)
+            db.session.commit()
+            flash("Comment posted successfully!", "success")
+    else:
+        flash("Comment cannot be empty", "danger")
+
+    return redirect(f"/recipe/{recipe_id}")
+
+
+# User-Generated Recipes
+@app.route("/recipe/submit", methods=["GET", "POST"])
+def submit_recipe():
+    # Handle user-generated recipe submission form and moderation process
+    return render_template("submit_recipe.html")
+
+
+@app.route("/recipe/pending")
+def pending_recipes():
+    # Fetch pending user-generated recipes from the database using SQLAlchemy
+    # Pass the data to the template
+    return render_template("pending_recipes.html")
+
+
+@app.route("/recipe/approve/<int:user_recipe_id>")
+def approve_recipe(user_recipe_id):
+    # Approve a user-generated recipe
+    return redirect("/recipe/pending")
+
+
+@app.route("/recipe/reject/<int:user_recipe_id>")
+def reject_recipe(user_recipe_id):
+    # Reject a user-generated recipe
+    return redirect("/recipe/pending")
+
+
+# Recipe Filtering and Sorting
+@app.route("/recipes/filter")
+def filter_recipes():
+    # Display page to filter recipes by cuisine, dietary preferences, etc.
+    return render_template("filter_recipes.html")
+
+
+@app.route("/recipes/sort")
+def sort_recipes():
+    # Display page to sort recipes by rating, preparation time, etc.
+    return render_template("sort_recipes.html")
+
+
+# Meal Planning
+@app.route("/meal/plan")
+def meal_plan():
+    # Display page to plan meals and generate a shopping list
+    return render_template("meal_plan.html")
+
+
+# Social Sharing
+@app.route("/recipe/<int:recipe_id>/share/facebook")
+def share_facebook(recipe_id):
+    # Share a recipe on Facebook and redirect back to recipe detail
+    return redirect("/recipe/{}".format(recipe_id))
+
+
+# Recipe Recommendations
+@app.route("/recommendations")
+def recommendations():
+    # Display personalized recipe recommendations based on user preferences
+    return render_template("recommendations.html")

@@ -1,7 +1,10 @@
 {% extends 'base.html' %} {% block title %}LogIn - Your Recipe App{% endblock %}
 {% block content %}
 <h1 class="display-1">LogIn</h1>
-<p class="lead">Log In below to access your recipes!</p>
+<p class="lead">
+  Log In below to access your recipes! Don't have an account?
+  <a href="/register">Register here</a>
+</p>
 <form method="POST">
   {{ form.hidden_tag() }} {% for field in form if field.widget.input_type !=
   'hidden' %}

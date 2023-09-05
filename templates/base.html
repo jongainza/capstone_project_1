@@ -7,10 +7,10 @@
       rel="stylesheet"
       href="https://bootswatch.com/4/flatly/bootstrap.min.css"
     />
-    <link
+    <!-- <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/fontawesome.min.css"
-    />
+    /> -->
     <!-- ... -->
     <style>
       /* Custom styles */
@@ -59,34 +59,43 @@
     </style>
   </head>
   <body>
-    <div class="header-container">
+    <nav class="navbar navbar-light bg-primary justify-content-between">
+      <div class="container">
+        <a href="/" class="navbar-brand text-dark">EasyCook!</a>
+        <ul class="nav navbar-nav flex-row float-right">
+          {% if session['user_id'] %}
+          <li class="nav-item">
+            <a href="/logout" class="nav-link pr-3 text-bright"
+              >Logout {{session['user_name']}}</a
+            >
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a href="/login" class="nav-link pr-3 text-bright">Login</a>
+          </li>
+          <li class="nav-item">
+            <a href="/register" class="nav-link text-bright">Register</a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </nav>
+    <!-- <div class="header-container">
       <header class="header">
         <div class="header-logo">
           <h1>Your Recipe App</h1>
           <p>Discover, Cook, and Enjoy!</p>
         </div>
-        <div class="header-links">
-          <!-- <form
-            class="me-3"
-            action="{{ url_for('search_recipes') }}"
-            method="GET"
-          >
-            <input
-              type="text"
-              class="form-control"
-              name="ingredient"
-              placeholder="Search recipes..."
-            />
-            <a href="/recipe" class="btn btn-primary me-2">Search</a>
-          </form> -->
-          {% if not g.user %}
+        <div class="header-links"> -->
+
+    <!-- {% if not g.user %}
           <li>
             <a href="/register" class="btn btn-outline-light ms-2">Sign Up</a>
           </li>
           <li><a href="/login" class="btn btn-outline-light">Login</a></li>
           {% else %}
           <li>
-            <a href="/users/{{ g.user.id }}">
+            <a href="/profile/{{ g.user.id }}">
               <img src="{{ g.user.image_url }}" alt="{{ g.user.username }}" />
             </a>
           </li>
@@ -94,17 +103,20 @@
           {% endif %}
         </div>
       </header>
-    </div>
+    </div> -->
 
-    <div class="container mt-5">
+    <div class="container mt-5" style="margin-top: 2em">
       {% for msg in get_flashed_messages() %}
-      <div>{{msg}}</div>
+      <div class="alert alert-danger">{{msg}}</div>
       {% endfor %} {% block content %}{% endblock %}
     </div>
 
     <footer class="footer">
       <div class="container">
-        <p>&copy; 2023 Your Recipe App. All rights reserved.</p>
+        <p>
+          &copy; 2023 Your Recipe App. All rights reserved. Created by Jon
+          Gainza.
+        </p>
       </div>
     </footer>
 
