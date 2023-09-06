@@ -7,6 +7,8 @@
       rel="stylesheet"
       href="https://bootswatch.com/4/flatly/bootstrap.min.css"
     />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <!-- <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/fontawesome.min.css"
@@ -66,7 +68,7 @@
           {% if session['user_id'] %}
           <li class="nav-item">
             <a href="/logout" class="nav-link pr-3 text-bright"
-              >Logout {{session['user_name']}}</a
+              >Logout <b>{{session['user_name']}}</b></a
             >
           </li>
           {% else %}

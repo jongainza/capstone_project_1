@@ -24,7 +24,7 @@ from models import (
     Comment,
 )
 
-from forms import RegistrationForm, LoginForm, CommentForm
+from forms import RegistrationForm, LoginForm, CommentForm, RecipeForm
 from sqlalchemy.exc import IntegrityError, NoResultFound
 import requests, json
 from sqlalchemy import or_, func
@@ -32,8 +32,8 @@ from datetime import datetime
 import random
 
 
-spoonacular_api_key = "35a15401df8045c189874b3ddcacadbb"
-
+spoonacular_api_key = "f89f72907ab54854aa13dcf946a10079"
+# "35a15401df8045c189874b3ddcacadbb"
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///foodie_db"
 app.app_context().push()
@@ -126,6 +126,9 @@ def logout():
 def home():
     # Fetch a list of recipes from the database using SQLAlchemy
     # Pass the data to the template
+
+    # if "user_id" in session:
+    #     return redirect(f"/profile/{session['user_id']}")
     return render_template("index.html")
 
 
@@ -152,28 +155,37 @@ def show_profile(user_id):  # Retrieve user details from the database
     )
 
 
+import random
+
+
 @app.route("/recipe", methods=["GET"])
 def search_recipes():
     ingredient = request.args.get("ingredient")
 
     if ingredient:
-        # Fetch random recipes from the database
-        db_recipes = Recipe.query.order_by(func.random()).limit(5).all()
+        # Fetch random recipes containing ingredient from the database
+        db_recipes = (
+            Recipe.query.join(Ingredient)
+            .filter(Ingredient.name == ingredient)
+            .order_by(func.random())
+            .limit(5)
+            .all()
+        )
+
+        # Extract existing titles in the database
+        existing_db_titles = [recipe.title for recipe in db_recipes]
 
         # Calculate the number of missing database recipes
         num_missing_db_recipes = 10 - len(db_recipes)
 
         if num_missing_db_recipes > 0:
-            # Fetch additional API recipes to complement the missing database recipes
-            additional_api_recipes = requests.get(
-                f"https://api.spoonacular.com/recipes/findByIngredients",
-                params={
-                    "ingredients": ingredient,
-                    "number": num_missing_db_recipes,
-                    "apiKey": spoonacular_api_key,
-                    "random": True,
-                },
-            ).json()
+            # Fetch additional random API recipes, filtering out duplicates
+            additional_api_recipes = fetch_additional_api_recipes(
+                ingredient, num_missing_db_recipes, existing_db_titles
+            )
+
+            # Shuffle the API recipes randomly
+            random.shuffle(additional_api_recipes)
 
         return render_template(
             "recipes.html",
@@ -183,6 +195,36 @@ def search_recipes():
         )
 
     return render_template("recipes.html", api_recipes=None, db_recipes=None)
+
+
+def fetch_additional_api_recipes(ingredient, num_missing, existing_titles):
+    additional_api_recipes = []
+
+    while num_missing > 0:
+        # Fetch a batch of random API recipes
+        batch_size = min(num_missing, 10)  # Fetch up to 10 at a time
+        api_recipes = requests.get(
+            f"https://api.spoonacular.com/recipes/findByIngredients",
+            params={
+                "ingredients": ingredient,
+                "number": batch_size,
+                "apiKey": spoonacular_api_key,
+                "random": True,
+            },
+        ).json()
+
+        # Filter out API recipes with titles already in the database
+        api_recipes = [
+            recipe for recipe in api_recipes if recipe["title"] not in existing_titles
+        ]
+
+        # Add the filtered API recipes to the result
+        additional_api_recipes.extend(api_recipes)
+
+        # Update the number of missing recipes
+        num_missing -= len(api_recipes)
+
+    return additional_api_recipes
 
 
 @app.route("/recipe/api/<int:recipe_id>")
@@ -196,13 +238,18 @@ def api_recipe_detail(recipe_id):
 
     # Create a dictionary with the necessary recipe details(this way I don't store recipes in my db, only if a user saves them)
     recipe = {
+        "id": recipe_id,
         "title": api_recipe_data["title"],
         "image": api_recipe_data["image"],
         "extendedIngredients": api_recipe_data.get("extendedIngredients", []),
         "analyzedInstructions": api_recipe_data.get("analyzedInstructions", []),
     }
 
-    return render_template("recipe_detail.html", recipe=recipe, recipe_id=recipe_id)
+    return render_template(
+        "recipe_detail.html",
+        recipe=recipe,
+        recipe_id=recipe_id,
+    )
 
 
 @app.route("/recipe/db/<int:recipe_id>")
@@ -224,6 +271,7 @@ def db_recipe_detail(recipe_id):
             saved_recipe=saved_recipe,
             comments=comments,
             form=form,
+            user=session["user_id"],
         )
     else:
         return render_template(
@@ -254,8 +302,8 @@ def save_recipe(recipe_id):
         step["step"] for step in recipe_data["analyzedInstructions"][0]["steps"]
     ]
 
-    # Check if the recipe already exists in the database
-    db_recipe = Recipe.query.get(recipe_id)
+    # Check if the recipe already exists in "recipes" database
+    db_recipe = Recipe.query.filter_by(title=recipe_title).first()
 
     if not db_recipe:
         # Create a new Recipe instance
@@ -324,9 +372,11 @@ def unsave_recipe(recipe_id):
 def post_comment(recipe_id):
     # Handle user comment submission and add to the database
     # Check if the user is logged in
-    if not g.user:
+    if not session["user_id"]:
         flash("You must be logged in to post a comment", "danger")
         return redirect("/login")
+
+    user_id = session.get("user_id")
 
     # Get the form data
     text = request.form.get("text")
@@ -353,7 +403,7 @@ def post_comment(recipe_id):
             # Handle regular comments
             comment = Comment(
                 text=text,
-                user_id=g.user.id,
+                user_id=session["user_id"],
                 recipe_id=recipe_id,
                 timestamp=datetime.utcnow(),
             )
@@ -363,4 +413,23 @@ def post_comment(recipe_id):
     else:
         flash("Comment cannot be empty", "danger")
 
-    return redirect(f"/recipe/{recipe_id}")
+    return redirect(f"/profile/{user_id}")
+
+
+@app.route("/create_recipe", methods=["GET", "POST"])
+def create_recipe():
+    form = RecipeForm()
+
+    if form.validate_on_submit():
+        # Process and store the form data here
+        # For example, you can access the data as form.title.data and form.instructions.data
+        # and save it to your database
+
+        return redirect(url_for("recipe_created"))
+
+    return render_template("/created_recipes/create_recipe.html", form=form)
+
+
+@app.route("/recipe_created")
+def recipe_created():
+    return "Recipe created successfully!"

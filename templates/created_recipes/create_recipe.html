@@ -1,0 +1,63 @@
+{% extends "base.html" %} {% block title %}Create Recipe{% endblock %} {% block
+content %}
+<body>
+  <h1>Create a Recipe</h1>
+  <form method="POST">
+    {{ form.hidden_tag() }} {{ form.title.label }} {{ form.title() }}
+    <h3>Instructions</h3>
+    <div id="instructions">
+      {% for instruction in form.instructions %}
+      <div class="instruction">
+        {{ instruction.step.label }} {{ instruction.step() }}
+      </div>
+      {% endfor %}
+    </div>
+    <button type="button" id="add_step">Add Step</button>
+    <br />
+    <h3>Ingredients</h3>
+    <div id="ingredients">
+      {% for ingredient in form.ingredients %}
+      <div class="ingredient">
+        {{ ingredient.name.label }}
+        <input type="text" name="{{ ingredient.name.name }}" /> {{
+        ingredient.quantity.label }}
+        <input type="text" name="{{ ingredient.quantity.name }}" />
+      </div>
+      {% endfor %}
+    </div>
+    <button type="button" id="add_ingredient">Add Ingredient</button>
+    <br />
+    {{ form.submit() }}
+  </form>
+  <script>
+    $(document).ready(function () {
+      $("#add_step").click(function () {
+        let newStep = `
+                <div class="instruction">
+                    <textarea id="instructions-${
+                      $(".instruction").length
+                    }" name="instructions-${
+          $(".instruction").length
+        }"></textarea>
+                </div>
+                `;
+        $("#instructions").append(newStep);
+      });
+
+      $("#add_ingredient").click(function () {
+        let newIngredient = `
+                <div class="ingredient">
+                    {{ form.ingredients[0].name.label }} <input type="text" name="ingredients-${
+                      $(".ingredient").length
+                    }-name">
+                    {{ form.ingredients[0].quantity.label }} <input type="text" name="ingredients-${
+                      $(".ingredient").length
+                    }-quantity">
+                </div>
+                `;
+        $("#ingredients").append(newIngredient);
+      });
+    });
+  </script>
+</body>
+{% endblock %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% block title %}User Profile{% endblock %} {% block
 content %}
 <div class="user-profile">
-  <h2>{{ user.username }}'s Profile</h2>
+  <h2><b>{{ user.username }}</b>'s Profile</h2>
 </div>
 <div class="row">
   <form class="me-3" action="/recipe" method="GET">
@@ -14,4 +14,39 @@ content %}
     <button type="submit" class="btn btn-primary">Search</button>
   </form>
 </div>
-{% endblock %}
+<div class="row">
+  <a href="/create_recipe" class="btn btn-seecondary"> Create Recipe </a>
+</div>
+{% if saved_recipes %}
+<div class="row">
+  <h3>Saved recipes</h3>
+  <ul>
+    {% for recipe in saved_recipes %}
+    <li>
+      <a href="/recipe/db/{{recipe.recipe.id}}">{{ recipe.recipe.title }}</a>
+      <ul>
+        {% for comment in recipe.recipe.comments %}
+        <li>
+          <div class="comment-info">
+            <p class="commenter-name">{{ comment.user.name }}</p>
+            <p class="comment-timestamp">
+              {{ comment.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+            </p>
+          </div>
+          <p class="comment-text">{{ comment.text }}</p>
+          <!-- Check if the comment has child comments -->
+          {% if comment.child_comments %}
+          <ul>
+            {% for child_comment in comment.child_comments %}
+            <li>{{ child_comment.text }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %} {% endblock %}

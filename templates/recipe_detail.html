@@ -24,6 +24,7 @@
 </ol>
 
 <div class="container mt-4">
+  {% if comments %}
   <h2>Comments:</h2>
   <ul>
     {% for comment in comments %}
@@ -49,7 +50,7 @@
     </li>
     {% endfor %}
   </ul>
-  {% if g.user %}
+  {% endif %} {% if user %}
   <h2>Add a Comment:</h2>
   <form method="POST" action="/recipe/{{ recipe.id }}/comment">
     {{ form.hidden_tag() }}
@@ -60,7 +61,7 @@
     <button type="submit" class="btn btn-primary">Post Comment</button>
   </form>
   {% else %}
-  <p>You can <a href="/login">log in</a> to post a comment.</p>
+  <p>You must save the recipe to post a comment.</p>
   {% endif %}
 </div>
 

@@ -89,6 +89,8 @@ class SavedRecipe(db.Model):
     recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
+    recipe = db.relationship("Recipe", backref="saved_recipes")
+
 
 class UserGeneratedRecipe(db.Model):
     __tablename__ = "user_recipes"
@@ -138,3 +140,4 @@ class Comment(db.Model):
         nullable=False,
         default=datetime.utcnow(),
     )
+    recipe = db.relationship("Recipe", backref="comments")
