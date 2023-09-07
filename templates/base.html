@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       rel="stylesheet"
-      href="https://bootswatch.com/4/flatly/bootstrap.min.css"
+      href="https://bootswatch.com/4/solar/bootstrap.min.css"
     />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -23,27 +23,6 @@
         display: flex;
         flex-direction: column;
         min-height: 100vh;
-      }
-
-      .header-container {
-        background-color: rgba(255, 255, 255, 0.9);
-        background-image: url("https://media.istockphoto.com/id/1402004971/photo/healthy-heart-food-high-in-flavonoids-and-polyphenols.jpg?b=1&s=612x612&w=0&k=20&c=-8HS5yzko3yqKmpWnvJ9YvuLCMW8ZWdzOWWUJv_kTdQ=");
-        background-size: 100% auto;
-        background-repeat: no-repeat;
-        background-position: center bottom;
-        background-attachment: fixed;
-        padding: 10px;
-      }
-
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .header-links {
-        display: flex;
-        gap: 10px;
       }
 
       .content {
@@ -82,30 +61,6 @@
         </ul>
       </div>
     </nav>
-    <!-- <div class="header-container">
-      <header class="header">
-        <div class="header-logo">
-          <h1>Your Recipe App</h1>
-          <p>Discover, Cook, and Enjoy!</p>
-        </div>
-        <div class="header-links"> -->
-
-    <!-- {% if not g.user %}
-          <li>
-            <a href="/register" class="btn btn-outline-light ms-2">Sign Up</a>
-          </li>
-          <li><a href="/login" class="btn btn-outline-light">Login</a></li>
-          {% else %}
-          <li>
-            <a href="/profile/{{ g.user.id }}">
-              <img src="{{ g.user.image_url }}" alt="{{ g.user.username }}" />
-            </a>
-          </li>
-          <li><a href="/logout">Log out</a></li>
-          {% endif %}
-        </div>
-      </header>
-    </div> -->
 
     <div class="container mt-5" style="margin-top: 2em">
       {% for msg in get_flashed_messages() %}

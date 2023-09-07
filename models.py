@@ -25,11 +25,8 @@ class User(db.Model):
     email = db.Column(db.Text, unique=True, nullable=False)
     password = db.Column(db.Text, nullable=False)
 
-    saved_recipes = db.relationship("SavedRecipe", backref="user", lazy=True)
-    user_generated_recipes = db.relationship(
-        "UserGeneratedRecipe", backref="user", lazy=True
-    )
-    comments = db.relationship("Comment", backref="user", lazy=True)
+    saved_recipes = db.relationship("SavedRecipe", backref="user")
+    comments = db.relationship("Comment", backref="user")
 
     @classmethod
     def register(cls, username, password, email, image_url):
@@ -65,8 +62,11 @@ class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     image = db.Column(db.String(200))
-    ingredients = db.relationship("Ingredient", backref="recipe", lazy=True)
-    instructions = db.relationship("Instruction", backref="recipe", lazy=True)
+    user_generated = db.Column(db.Boolean, default=False, nullable=False)
+    status = db.Column(db.String(10), default=None, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    ingredients = db.relationship("Ingredient", backref="recipe")
+    instructions = db.relationship("Instruction", backref="recipe")
 
 
 class Ingredient(db.Model):
@@ -90,38 +90,6 @@ class SavedRecipe(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
     recipe = db.relationship("Recipe", backref="saved_recipes")
-
-
-class UserGeneratedRecipe(db.Model):
-    __tablename__ = "user_recipes"
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    status = db.Column(db.String(20), nullable=False, default="pending")
-    ingredients = db.relationship(
-        "UserGeneratedIngredient", backref="user_generated_recipe", lazy=True
-    )
-    instructions = db.relationship(
-        "UserGeneratedInstruction", backref="user_generated_recipe", lazy=True
-    )
-
-
-class UserGeneratedIngredient(db.Model):
-    __tablename__ = "user_ingredients"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    user_generated_recipe_id = db.Column(
-        db.Integer, db.ForeignKey("user_recipes.id"), nullable=False
-    )
-
-
-class UserGeneratedInstruction(db.Model):
-    __tablename__ = "user_instructions"
-    id = db.Column(db.Integer, primary_key=True)
-    step = db.Column(db.Text, nullable=False)
-    user_generated_recipe_id = db.Column(
-        db.Integer, db.ForeignKey("user_recipes.id"), nullable=False
-    )
 
 
 class Comment(db.Model):

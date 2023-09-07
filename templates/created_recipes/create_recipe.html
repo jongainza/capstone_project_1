@@ -3,59 +3,116 @@ content %}
 <body>
   <h1>Create a Recipe</h1>
   <form method="POST">
-    {{ form.hidden_tag() }} {{ form.title.label }} {{ form.title() }}
-    <h3>Instructions</h3>
+    {{ recipe_form.hidden_tag() }}
+    <div class="form-group">
+      {{ recipe_form.title.label }} {{ recipe_form.title(class="form-control
+      form-control-lg", placeholder="Title") }}
+    </div>
+    <div class="form-group">
+      {{ recipe_form.image.label }} {{ recipe_form.image(class="form-control",
+      placeholder="Image URL") }}
+    </div>
+
     <div id="instructions">
-      {% for instruction in form.instructions %}
-      <div class="instruction">
-        {{ instruction.step.label }} {{ instruction.step() }}
+      <h3>Instructions</h3>
+      {% for instruction in instructions_form %}
+      <div class="form-group">
+        {{ instruction.label }} {{ instruction(class="form-control",
+        placeholder="Step") }}
       </div>
       {% endfor %}
     </div>
-    <button type="button" id="add_step">Add Step</button>
+    <button
+      type="button"
+      id="add_step"
+      class="btn btn-outline-secondary btn-sm"
+    >
+      Add Step
+    </button>
     <br />
-    <h3>Ingredients</h3>
+
     <div id="ingredients">
-      {% for ingredient in form.ingredients %}
-      <div class="ingredient">
-        {{ ingredient.name.label }}
-        <input type="text" name="{{ ingredient.name.name }}" /> {{
-        ingredient.quantity.label }}
-        <input type="text" name="{{ ingredient.quantity.name }}" />
+      <h3>Ingredients</h3>
+      {% for ingredient in ingredients_form %}
+      <div class="form-group">
+        {{ ingredient.label }} {{ ingredient(class="form-control",
+        placeholder="Ingredient") }}
       </div>
       {% endfor %}
     </div>
-    <button type="button" id="add_ingredient">Add Ingredient</button>
+    <button
+      type="button"
+      id="add_ingredient"
+      class="btn btn-outline-secondary btn-sm"
+    >
+      Add Ingredient
+    </button>
     <br />
-    {{ form.submit() }}
+    <button class="btn btn-info disabled btn-sm" type="submit">
+      Create Recipe
+    </button>
   </form>
   <script>
+    console.log("fuck");
     $(document).ready(function () {
-      $("#add_step").click(function () {
-        let newStep = `
-                <div class="instruction">
-                    <textarea id="instructions-${
-                      $(".instruction").length
-                    }" name="instructions-${
-          $(".instruction").length
-        }"></textarea>
-                </div>
-                `;
-        $("#instructions").append(newStep);
-      });
+      let ingredientCounter = 1; // Initialize a counter for ingredients
 
       $("#add_ingredient").click(function () {
-        let newIngredient = `
-                <div class="ingredient">
-                    {{ form.ingredients[0].name.label }} <input type="text" name="ingredients-${
-                      $(".ingredient").length
-                    }-name">
-                    {{ form.ingredients[0].quantity.label }} <input type="text" name="ingredients-${
-                      $(".ingredient").length
-                    }-quantity">
-                </div>
-                `;
-        $("#ingredients").append(newIngredient);
+        // Increment the counter for each new ingredient
+        ingredientCounter++;
+
+        // Create a new ingredient group with a unique name
+        let newIngredientGroup = `
+      <div class="form-group">
+        <label class="col-form-label col-form-label-sm mt-4" for="inputSmall">Ingredient${ingredientCounter}</label>
+        <input class="form-control form-control-sm" type="text" name="ingredients_${ingredientCounter}" placeholder="Ingredient" id="inputSmall">
+        <button
+          type="button"
+          class="btn btn-outline-warning delete-ingredient btn-sm"
+        >
+          Delete
+        </button>
+      </div>
+    `;
+
+        // Append the new ingredient group to the ingredients container
+        $("#ingredients").append(newIngredientGroup);
+      });
+
+      // Add event listener for the delete button on ingredients
+      $("#ingredients").on("click", ".delete-ingredient", function () {
+        // Find the parent ingredient group and remove it
+        $(this).closest(".form-group").remove();
+      });
+
+      let instructionCounter = 1; // Initialize a counter for instructions
+
+      $("#add_step").click(function () {
+        // Increment the counter for each new instruction
+        instructionCounter++;
+
+        // Create a new step group with a unique name
+        let newStepGroup = `
+      <div class="form-group">
+        <label class="col-form-label col-form-label-sm mt-4" for="inputSmall">Step ${instructionCounter} </label>
+        <input class="form-control form-control-sm" type="text" name="instructions_${instructionCounter}" placeholder="Step" id="inputSmall">
+        <button
+          type="button"
+          class="btn btn-outline-warning delete-step btn-sm"
+        >
+          Delete
+        </button>
+      </div>
+    `;
+
+        // Append the new step group to the steps container
+        $("#instructions").append(newStepGroup);
+      });
+
+      // Add event listener for the delete button on steps
+      $("#instructions").on("click", ".delete-step", function () {
+        // Find the parent step group and remove it
+        $(this).closest(".form-group").remove();
       });
     });
   </script>

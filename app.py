@@ -18,13 +18,17 @@ from models import (
     Ingredient,
     Instruction,
     SavedRecipe,
-    UserGeneratedRecipe,
-    UserGeneratedIngredient,
-    UserGeneratedInstruction,
     Comment,
 )
 
-from forms import RegistrationForm, LoginForm, CommentForm, RecipeForm
+from forms import (
+    RegistrationForm,
+    LoginForm,
+    CommentForm,
+    RecipeForm,
+    IngredientsForm,
+    InstructionsForm,
+)
 from sqlalchemy.exc import IntegrityError, NoResultFound
 import requests, json
 from sqlalchemy import or_, func
@@ -121,14 +125,20 @@ def logout():
     return redirect("/")
 
 
-# Recipe Search and Display
 @app.route("/")
 def home():
-    # Fetch a list of recipes from the database using SQLAlchemy
-    # Pass the data to the template
+    if "user_id" in session:
+        user_id = session["user_id"]
 
-    # if "user_id" in session:
-    #     return redirect(f"/profile/{session['user_id']}")
+        # check if user exists in database
+        user = User.query.get(user_id)
+
+        if user is not None:
+            return redirect(f"/profile/{session['user_id']}")
+
+        # if the user is not in the database clear the session
+        session.pop("user_id")
+
     return render_template("index.html")
 
 
@@ -144,7 +154,7 @@ def show_profile(user_id):  # Retrieve user details from the database
     saved_recipes = user.saved_recipes
 
     # Retrieve user-generated recipes from the database
-    user_generated_recipes = user.user_generated_recipes
+    user_generated_recipes = Recipe.query.filter_by(user_id=user_id).all()
 
     # Pass user data and other data to the template
     return render_template(
@@ -315,30 +325,39 @@ def save_recipe(recipe_id):
         for ingredient_name in ingredient_names:
             new_ingredient = Ingredient(name=ingredient_name, recipe_id=new_recipe.id)
             db.session.add(new_ingredient)
+            db.session.commit()
 
         # Create Instruction instances and link them to the Recipe instance
         for step in instruction_steps:
             new_instruction = Instruction(step=step, recipe_id=new_recipe.id)
             db.session.add(new_instruction)
+            db.session.commit()
 
         # Get the user's ID from the session
-        user_id = session.get("user_id")
+    user_id = session.get("user_id")
 
-        # Update User's Saved Recipes
-        if user_id:
-            user = User.query.get(user_id)
-            if user:
-                saved_recipe = SavedRecipe(recipe_id=new_recipe.id, user_id=user_id)
+    # Update User's Saved Recipes
+    if user_id:
+        user = User.query.get(user_id)
+        if user:
+            db_recipe = Recipe.query.filter_by(title=recipe_title).first()
+            # Check if the recipe already exists in "saved_recipes" database
+            db_saved_recipe = SavedRecipe.query.filter_by(
+                user_id=user_id, recipe_id=db_recipe.id
+            ).first()
+            if not db_saved_recipe:
+                saved_recipe = SavedRecipe(recipe_id=db_recipe.id, user_id=user_id)
                 # Swap recipe and user
                 db.session.add(saved_recipe)
                 db.session.commit()
                 flash("Recipe saved successfully!", "success")
             else:
-                flash("User not found!", "error")
+                flash("Recipe is already saved!", "info")
+
         else:
-            flash("User not authenticated!", "error")
+            flash("User not found!", "error")
     else:
-        flash("Recipe is already saved!", "info")
+        flash("User not authenticated!", "error")
 
     return redirect(f"/profile/{session['user_id']}")
 
@@ -351,19 +370,12 @@ def unsave_recipe(recipe_id):
         flash("Access Unauthoried", "Danger")
         return redirect("/login")
 
-    recipe = Recipe.query.get(recipe_id)
-    ingredients = Ingredient.query.filter_by(recipe_id=recipe_id).all()
-    instructions = Instruction.query.filter_by(recipe_id=recipe_id).all()
-
-    saved_recipes = SavedRecipe.query.filter_by(recipe_id=recipe_id).all()
+    saved_recipes = SavedRecipe.query.filter_by(
+        recipe_id=recipe_id, user_id=user_id
+    ).all()
     for saved_recipe in saved_recipes:
         db.session.delete(saved_recipe)
-    for ingredient in ingredients:
-        db.session.delete(ingredient)
-    for instruction in instructions:
-        db.session.delete(instruction)
-    db.session.delete(recipe)
-    db.session.commit()
+        db.session.commit()
     flash("Recipe delated succesfully", "success")
     return redirect(f"/profile/{user_id}")
 
@@ -418,18 +430,62 @@ def post_comment(recipe_id):
 
 @app.route("/create_recipe", methods=["GET", "POST"])
 def create_recipe():
-    form = RecipeForm()
+    # Check if the user is logged in (You can adjust this part based on your authentication logic)
+    user_id = session.get("user_id")
+    if user_id is None:
+        flash("You must be logged in to create a recipe", "danger")
+        return redirect("/login")  # Redirect to the login page or an appropriate page
 
-    if form.validate_on_submit():
-        # Process and store the form data here
-        # For example, you can access the data as form.title.data and form.instructions.data
-        # and save it to your database
+    # Create instances of the forms
+    recipe_form = RecipeForm()
+    ingredients_form = IngredientsForm(prefix="ingredients")
+    instructions_form = InstructionsForm(prefix="instructions")
 
-        return redirect(url_for("recipe_created"))
+    if request.method == "POST":
+        # Check if the submitted form is the recipe form
+        if recipe_form.validate_on_submit():
+            # Create a new recipe
+            new_recipe = Recipe(
+                title=recipe_form.title.data,
+                user_generated=True,
+                user_id=user_id,
+                image=recipe_form.image.data,
+                status="pending",
+            )
 
-    return render_template("/created_recipes/create_recipe.html", form=form)
+            db.session.add(new_recipe)
+            db.session.commit()
 
+        # Check if the submitted form is the ingredients form
+        if ingredients_form.validate_on_submit():
+            # Loop through the submitted ingredients and add them to the recipe
+            for ingredient_field in ingredients_form:
+                if ingredient_field.data:
+                    new_ingredient = Ingredient(
+                        name=ingredient_field.data,
+                        recipe=new_recipe,
+                    )
+                    db.session.add(new_ingredient)
 
-@app.route("/recipe_created")
-def recipe_created():
-    return "Recipe created successfully!"
+        # Check if the submitted form is the instructions form
+        if instructions_form.validate_on_submit():
+            # Loop through the submitted instructions and add them to the recipe
+            for instruction_field in instructions_form:
+                if instruction_field.data:
+                    new_instruction = Instruction(
+                        step=instruction_field.data,
+                        recipe=new_recipe,
+                    )
+                    db.session.add(new_instruction)
+
+        # Commit all changes to the database
+        db.session.commit()
+
+        return redirect(f"/profile/{user_id}")  # Redirect to the user's profile page
+
+    return render_template(
+        "/created_recipes/create_recipe.html",
+        recipe_form=recipe_form,
+        ingredients_form=ingredients_form,
+        instructions_form=instructions_form,
+    )

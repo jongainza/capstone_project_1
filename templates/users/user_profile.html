@@ -4,18 +4,24 @@ content %}
   <h2><b>{{ user.username }}</b>'s Profile</h2>
 </div>
 <div class="row">
-  <form class="me-3" action="/recipe" method="GET">
-    <input
-      type="text"
-      class="form-control"
-      name="ingredient"
-      placeholder="Enter ingredient to find recipes..."
-    />
-    <button type="submit" class="btn btn-primary">Search</button>
+  <form action="/recipe" method="GET">
+    <div class="input-group mb-3">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Main Ingredient"
+        name="ingredient"
+        aria-label="Ingredient"
+        aria-describedby="button-addon2"
+      />
+      <button class="btn btn-primary" type="submit" id="button-addon2">
+        Search
+      </button>
+    </div>
   </form>
 </div>
 <div class="row">
-  <a href="/create_recipe" class="btn btn-seecondary"> Create Recipe </a>
+  <a href="/create_recipe" class="btn btn-info"> Create Recipe </a>
 </div>
 {% if saved_recipes %}
 <div class="row">
