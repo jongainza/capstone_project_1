@@ -27,32 +27,16 @@ class CommentForm(FlaskForm):
     submit = SubmitField("Post Comment")
 
 
-class InstructionForm(FlaskForm):
-    step = TextAreaField("Step")
-
-
-class IngredientForm(FlaskForm):
-    name = StringField("Ingredient Name")
-    quantity = StringField("Quantity")
-
-
-# class RecipeForm(FlaskForm):
-#     title = StringField("Title")
-#     image = StringField("Image_URL")
-#     instructions = FieldList(FormField(InstructionForm), min_entries=1)
-#     ingredients = FieldList(FormField(IngredientForm), min_entries=1)
-#     add_step = SubmitField("Add Step")
-#     add_ingredient = SubmitField("Add Ingredient")
-
-
 class RecipeForm(FlaskForm):
     title = StringField("Title")
     image = StringField("Image_URL")
-
-
-class IngredientsForm(FlaskForm):
     ingredient = StringField("Ingredient")
-
-
-class InstructionsForm(FlaskForm):
     step = StringField("Step")
+
+
+# class IngredientsForm(FlaskForm):
+#     ingredient = StringField("Ingredient")
+
+
+# class InstructionsForm(FlaskForm):
+#     step = StringField("Step")

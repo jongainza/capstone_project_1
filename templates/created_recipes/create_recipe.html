@@ -3,42 +3,17 @@ content %}
 <body>
   <h1>Create a Recipe</h1>
   <form method="POST">
-    {{ recipe_form.hidden_tag() }}
-    <div class="form-group">
-      {{ recipe_form.title.label }} {{ recipe_form.title(class="form-control
-      form-control-lg", placeholder="Title") }}
-    </div>
-    <div class="form-group">
-      {{ recipe_form.image.label }} {{ recipe_form.image(class="form-control",
-      placeholder="Image URL") }}
-    </div>
-
-    <div id="instructions">
-      <h3>Instructions</h3>
-      {% for instruction in instructions_form %}
-      <div class="form-group">
-        {{ instruction.label }} {{ instruction(class="form-control",
-        placeholder="Step") }}
-      </div>
+    {{ form.hidden_tag() }} {% for field in form if field.widget.input_type !=
+    'hidden' %}
+    <p>
+      {{ field.label }} {{ field(class_="form-control") }} {% for error in
+      field.errors %}
+      <span class="form-text text-danger">{{ error }}</span>
       {% endfor %}
-    </div>
-    <button
-      type="button"
-      id="add_step"
-      class="btn btn-outline-secondary btn-sm"
-    >
-      Add Step
-    </button>
-    <br />
-
-    <div id="ingredients">
-      <h3>Ingredients</h3>
-      {% for ingredient in ingredients_form %}
-      <div class="form-group">
-        {{ ingredient.label }} {{ ingredient(class="form-control",
-        placeholder="Ingredient") }}
-      </div>
-      {% endfor %}
+    </p>
+    {% endfor %}
+    <div id="ingredient-container">
+      <!-- Ingredient fields will be added here -->
     </div>
     <button
       type="button"
@@ -48,73 +23,63 @@ content %}
       Add Ingredient
     </button>
     <br />
+    <div id="step-container">
+      <!-- Step fields will be added here -->
+    </div>
+    <button
+      type="button"
+      id="add_step"
+      class="btn btn-outline-secondary btn-sm"
+    >
+      Add Step
+    </button>
+    <br />
     <button class="btn btn-info disabled btn-sm" type="submit">
       Create Recipe
     </button>
   </form>
   <script>
-    console.log("fuck");
     $(document).ready(function () {
-      let ingredientCounter = 1; // Initialize a counter for ingredients
-
       $("#add_ingredient").click(function () {
-        // Increment the counter for each new ingredient
-        ingredientCounter++;
+        // Create a new ingredient field
+        let newIngredientField = createField("ingredient");
 
-        // Create a new ingredient group with a unique name
-        let newIngredientGroup = `
-      <div class="form-group">
-        <label class="col-form-label col-form-label-sm mt-4" for="inputSmall">Ingredient${ingredientCounter}</label>
-        <input class="form-control form-control-sm" type="text" name="ingredients_${ingredientCounter}" placeholder="Ingredient" id="inputSmall">
-        <button
-          type="button"
-          class="btn btn-outline-warning delete-ingredient btn-sm"
-        >
-          Delete
-        </button>
-      </div>
-    `;
-
-        // Append the new ingredient group to the ingredients container
-        $("#ingredients").append(newIngredientGroup);
+        // Append the new ingredient field to the ingredient container
+        $("#ingredient-container").append(newIngredientField);
       });
 
       // Add event listener for the delete button on ingredients
-      $("#ingredients").on("click", ".delete-ingredient", function () {
-        // Find the parent ingredient group and remove it
+      $("#ingredient-container").on("click", ".delete-ingredient", function () {
+        // Remove the corresponding ingredient field
         $(this).closest(".form-group").remove();
       });
 
-      let instructionCounter = 1; // Initialize a counter for instructions
-
       $("#add_step").click(function () {
-        // Increment the counter for each new instruction
-        instructionCounter++;
+        // Create a new step field
+        let newStepField = createField("step");
 
-        // Create a new step group with a unique name
-        let newStepGroup = `
-      <div class="form-group">
-        <label class="col-form-label col-form-label-sm mt-4" for="inputSmall">Step ${instructionCounter} </label>
-        <input class="form-control form-control-sm" type="text" name="instructions_${instructionCounter}" placeholder="Step" id="inputSmall">
-        <button
-          type="button"
-          class="btn btn-outline-warning delete-step btn-sm"
-        >
-          Delete
-        </button>
-      </div>
-    `;
-
-        // Append the new step group to the steps container
-        $("#instructions").append(newStepGroup);
+        // Append the new step field to the step container
+        $("#step-container").append(newStepField);
       });
 
       // Add event listener for the delete button on steps
-      $("#instructions").on("click", ".delete-step", function () {
-        // Find the parent step group and remove it
+      $("#step-container").on("click", ".delete-step", function () {
+        // Remove the corresponding step field
         $(this).closest(".form-group").remove();
       });
+
+      // Function to create a new field with the given type
+      function createField(type) {
+        return `
+        <div class="form-group">
+          <input type="text" class="form-control" name="${type}" placeholder="${type.charAt(0).toUpperCase() + type.slice(1)}">
+          <button type="button" class="btn btn-outline-warning delete-${type}">
+            Delete
+          </button>
+        </div>
+      `;
+      }
     });
   </script>
+  {% endblock %}
 </body>
-{% endblock %}

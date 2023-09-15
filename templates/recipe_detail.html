@@ -5,39 +5,35 @@
 
 <h2>Ingredients</h2>
 <ul>
-  {% if recipe.extendedIngredients %} {% for ingredient in
-  recipe.extendedIngredients %}
-  <li>{{ ingredient.original }}</li>
-  {% endfor %} {% else %} {% for ingredient in recipe.ingredients %}
+  {% for ingredient in recipe.ingredients %}
   <li>{{ ingredient.name }}</li>
-  {% endfor %} {% endif %}
+  {% endfor %}
 </ul>
 
 <h2>Instructions</h2>
 <ol>
-  {% if recipe.analyzedInstructions %} {% for step in
-  recipe.analyzedInstructions[0].steps %}
-  <li>{{ step.step }}</li>
-  {% endfor %} {% else %} {% for step in recipe.instructions %}
-  <li>{{ step.step }}</li>
-  {% endfor %} {% endif %}
+  {% for instruction in recipe.instructions %}
+  <li>{{ instruction.step }}</li>
+  {% endfor %}
 </ol>
 
 <div class="container mt-4">
   {% if comments %}
   <h2>Comments:</h2>
   <ul>
-    {% for comment in comments %}
+    {% for comment in comments if comment.parent_id is none %}
     <li>
-      <strong>{{ comment.user.username }}</strong>
-      <span>{{ comment.timestamp.strftime("%Y-%m-%d %H:%M:%S") }}</span>
-      <p>{{ comment.text }}</p>
+      <a href="/show_thread/{{recipe.id}}/{{comment.id}}">{{ comment.text }}</a>
+      <small>
+        <strong>{{ comment.user.username }}</strong> {{
+        comment.timestamp.strftime("%m-%d-%Y %H:%M:%S") }}
+      </small>
       {% if g.user %} {% if comments|length > 1 %}
       <a href="#" class="reply-link" data-comment-id="{{ comment.id }}"
         >Reply</a
       >
       <div class="reply-form hidden" id="reply-form-{{ comment.id }}">
-        <form method="POST" action="/recipe/{{ recipe.id }}/comment">
+        <form method="POST" action="/recipe/{{ recipe.id }}//comment">
           {{ form.hidden_tag() }} {{ form.hidden_tag("parent_id", comment.id) }}
           <div class="form-group">
             {{ form.text.label(class="form-label") }} {{
@@ -50,9 +46,9 @@
     </li>
     {% endfor %}
   </ul>
-  {% endif %} {% if user %}
+  {% endif %} {% if user %} {% if saved_recipe or created_recipe %}
   <h2>Add a Comment:</h2>
-  <form method="POST" action="/recipe/{{ recipe.id }}/comment">
+  <form method="POST" action="/recipe/{{ recipe.id }}/None/comment">
     {{ form.hidden_tag() }}
     <div class="form-group">
       {{ form.text.label(class="form-label") }} {{
@@ -62,7 +58,13 @@
   </form>
   {% else %}
   <p>You must save the recipe to post a comment.</p>
-  {% endif %}
+  <form
+    action="{{ url_for('save_recipe', recipe_id=recipe.id) }}"
+    method="POST"
+  >
+    <button type="submit" class="btn btn-primary">Save Recipe</button>
+  </form>
+  {% endif %}{% endif %}
 </div>
 
 <a href="{{ url_for('search_recipes') }}" class="btn btn-secondary"
@@ -74,9 +76,6 @@
   class="btn btn-danger"
   >Unsave Recipe</a
 >
-{% else %}
-<form action="{{ url_for('save_recipe', recipe_id=recipe.id) }}" method="POST">
-  <button type="submit" class="btn btn-primary">Save Recipe</button>
-</form>
+
 {% endif %} {% endblock %}
 <script src="javascript.js"></script>

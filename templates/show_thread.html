@@ -1,0 +1,39 @@
+{% extends "base.html" %} {% block title %}Thread{% endblock %} {% block content
+%}
+<div>
+  <h3>{{recipe.title}} -- Thread</h3>
+</div>
+
+<div>
+  <strong
+    >Initial Post: {{comment.text}}
+    <small
+      >by {{ comment.user.username }} on {{ comment.timestamp.strftime("%m-%d-%Y
+      %H:%M:%S") }}</small
+    ></strong
+  >
+</div>
+{% if child_comments %}
+<div>
+  {% for child in child_comments %}
+  <strong
+    >{{child.text}}
+    </strong
+  ><small>Response by {{ child.user.username }} on {{
+      child.timestamp.strftime("%m-%d-%Y %H:%M:%S") }}</small
+    ></small>
+      
+  {% endfor %}
+</div>
+
+{% endif %} 
+
+ <form method="POST" action="/recipe/{{ recipe.id }}/{{ comment.id }}/comment">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+      {{ form.text.label(class="form-label") }} {{
+      form.text(class="form-control") }}
+    </div>
+    <button type="submit" class="btn btn-primary">Add Comment to the Thread</button>
+  </form>
+{% endblock %}

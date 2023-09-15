@@ -60,8 +60,8 @@ class User(db.Model):
 class Recipe(db.Model):
     __tablename__ = "recipes"
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    image = db.Column(db.String(200))
+    title = db.Column(db.String, nullable=False)
+    image = db.Column(db.String)
     user_generated = db.Column(db.Boolean, default=False, nullable=False)
     status = db.Column(db.String(10), default=None, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
@@ -72,7 +72,7 @@ class Recipe(db.Model):
 class Ingredient(db.Model):
     __tablename__ = "ingredients"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
+    name = db.Column(db.String, nullable=False)
     recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.id"), nullable=False)
 
 

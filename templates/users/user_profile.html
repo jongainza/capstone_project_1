@@ -2,6 +2,7 @@
 content %}
 <div class="user-profile">
   <h2><b>{{ user.username }}</b>'s Profile</h2>
+  <img src="{{user.image_url}}" alt="" />
 </div>
 <div class="row">
   <form action="/recipe" method="GET">
@@ -23,36 +24,58 @@ content %}
 <div class="row">
   <a href="/create_recipe" class="btn btn-info"> Create Recipe </a>
 </div>
-{% if saved_recipes %}
+<!-- show saved recipes -->
 <div class="row">
-  <h3>Saved recipes</h3>
+  {% if saved_recipes %}
+  <h5>Saved recipes</h5>
   <ul>
     {% for recipe in saved_recipes %}
     <li>
       <a href="/recipe/db/{{recipe.recipe.id}}">{{ recipe.recipe.title }}</a>
       <ul>
-        {% for comment in recipe.recipe.comments %}
+        {% for comment in recipe.recipe.comments if comment.parent_id is none %}
         <li>
-          <div class="comment-info">
-            <p class="commenter-name">{{ comment.user.name }}</p>
-            <p class="comment-timestamp">
-              {{ comment.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
-            </p>
-          </div>
-          <p class="comment-text">{{ comment.text }}</p>
-          <!-- Check if the comment has child comments -->
-          {% if comment.child_comments %}
-          <ul>
-            {% for child_comment in comment.child_comments %}
-            <li>{{ child_comment.text }}</li>
-            {% endfor %}
-          </ul>
-          {% endif %}
+          <a href="/show_thread/{{recipe.id}}/{{comment.id}}"
+            >{{ comment.text }}</a
+          >
+          <small
+            ><strong>{{ comment.user.username }}</strong> {{
+            comment.timestamp.strftime("%m-%d-%Y %H:%M:%S") }}</small
+          >
         </li>
         {% endfor %}
       </ul>
     </li>
     {% endfor %}
   </ul>
+
+  {% endif %}
 </div>
-{% endif %} {% endblock %}
+<div class="row">
+  {% if user_generated_recipes %}
+
+  <h5>Created Recipes</h5>
+  <ul>
+    {% for recipe in user_generated_recipes %}
+    <li>
+      <a href="/recipe/db/{{recipe.id}}">{{ recipe.title }}</a>
+      <ul>
+        {% for comment in recipe.comments if comment.parent_id is none %}
+        <li>
+          <a href="/show_thread/{{recipe.id}}/{{comment.id}}"
+            >{{ comment.text }}</a
+          >
+          <small
+            ><strong>{{ comment.user.username }}</strong> {{
+            comment.timestamp.strftime("%m-%d-%Y %H:%M:%S") }}</small
+          >
+        </li>
+        {% endfor %}
+      </ul>
+    </li>
+    {% endfor %}
+  </ul>
+
+  {% endif %}
+</div>
+{% endblock %}
