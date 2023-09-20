@@ -1,4 +1,4 @@
-from my_app import db
+from app import db
 
 
 def drop_users_table():
