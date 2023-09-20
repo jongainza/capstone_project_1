@@ -33,7 +33,6 @@ class User(db.Model):
         """register user w/hashed password & reeturn user."""
 
         hashed = bcrypt.generate_password_hash(password)
-        # turn bytestring into normal unicode (unicode utf8) string
         hashed_utf8 = hashed.decode("utf8")
 
         # return instance of user w/username and hashed pwd

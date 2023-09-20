@@ -57,12 +57,10 @@ toolbar = DebugToolbarExtension(app)
 res = requests.get(
     "https://api.spoonacular.com/recipes/642927/analyzedInstructions",
     params={
-        # "query": "fish",
-        # "includeIngredients": "cheese",
-        # "number": 2,
         "apiKey": "35a15401df8045c189874b3ddcacadbb",
     },
 )
+
 # User Authentication
 
 
@@ -119,7 +117,6 @@ def login():
 @app.route("/logout")
 def logout():
     # Logout the current user and redirect to the homepage
-    # Example: logout_user() from Flask-Login
     """Handle logout of user."""
     session.pop("user_id", "user_name")
     flash("Goodbye!")
@@ -164,140 +161,6 @@ def show_profile(user_id):  # Retrieve user details from the database
         saved_recipes=saved_recipes,
         user_generated_recipes=user_generated_recipes,
     )
-
-
-import random
-
-
-# @app.route("/recipe", methods=["GET"])
-# def search_recipes():
-#     ingredient = request.args.get("ingredient")
-
-#     if ingredient:
-#         # Fetch random recipes containing the ingredient from the database, limit to 5
-#         db_recipes = (
-#             Recipe.query.join(Ingredient)
-#             .filter(Ingredient.name == ingredient)
-#             .order_by(func.random())
-#             .limit(5)
-#             .all()
-#         )
-
-#         # Extract existing titles in the database
-#         existing_db_titles = set(recipe.title for recipe in db_recipes)
-
-#         # Calculate the number of missing database recipes needed (up to 5)
-#         num_missing_db_recipes = max(0, 10 - len(db_recipes))
-
-#         if num_missing_db_recipes > 0:
-#             # Fetch additional random API recipes, filtering out duplicates
-#             additional_api_recipes = fetch_additional_api_recipes(
-#                 ingredient, num_missing_db_recipes, existing_db_titles
-#             )
-
-#             # Fetch all recipes (including the newly added API recipes) from the database
-#             total_recipes = (
-#                 Recipe.query.join(Ingredient)
-#                 .filter(Ingredient.name == ingredient)
-#                 .order_by(func.random())
-#                 .limit(10)
-#                 .all()
-#             )
-
-#             print("Ingredient:", ingredient)
-#             db_recipes = (
-#                 Recipe.query.join(Ingredient)
-#                 .filter(Ingredient.name == ingredient)
-#                 .order_by(text("RANDOM()"))
-#                 .limit(5)
-#                 .all()
-#             )
-#             print("DB Recipes:", db_recipes)
-
-#             return render_template(
-#                 "recipes.html",
-#                 recipes=total_recipes,
-#             )
-
-#     return render_template("recipes.html", db_recipes=None)
-
-
-# def fetch_additional_api_recipes(ingredient, num_missing, existing_titles):
-#     additional_api_recipes = []
-
-#     while num_missing > 0:
-#         # Fetch a batch of random API recipes, up to the number of missing recipes
-#         batch_size = min(num_missing, 10)
-#         api_recipes = requests.get(
-#             f"https://api.spoonacular.com/recipes/findByIngredients",
-#             params={
-#                 "ingredients": ingredient,
-#                 "number": batch_size,
-#                 "apiKey": spoonacular_api_key,
-#                 "random": True,
-#             },
-#         ).json()
-
-#         for recipe in api_recipes:
-#             recipe_title = recipe["title"]
-#             # Check if a recipe with the same title already exists in the database
-#             existing_recipe = Recipe.query.filter_by(title=recipe_title).first()
-
-#             if not existing_recipe:
-#                 additional_api_recipes.append(recipe)
-#                 existing_titles.add(recipe_title)
-
-#                 # Fetch the recipe details from the API
-#                 url = f"https://api.spoonacular.com/recipes/{recipe['id']}/information"
-#                 params = {"apiKey": spoonacular_api_key}
-#                 response = requests.get(url, params=params)
-#                 api_recipe_data = response.json()
-
-#                 # Extract relevant recipe details for the current recipe
-#                 recipe_image = api_recipe_data.get("image", None)
-#                 recipe_ingredients = api_recipe_data.get("extendedIngredients", [])
-
-#                 # Check if analyzedInstructions exist and have steps
-#                 instructions_data = api_recipe_data.get("analyzedInstructions", [])
-#                 if instructions_data and instructions_data[0].get("steps"):
-#                     recipe_steps = instructions_data[0].get("steps")
-#                 else:
-#                     recipe_steps = []
-
-#                 # Create new Recipe, Ingredients, and Instruction objects
-#                 new_recipe = Recipe(title=recipe_title, image=recipe_image)
-#                 db.session.add(new_recipe)
-#                 db.session.commit()
-
-#                 for ingredient in recipe_ingredients:
-#                     new_ingredient = Ingredient(
-#                         name=ingredient["original"], recipe_id=new_recipe.id
-#                     )
-#                     db.session.add(new_ingredient)
-
-#                 for step in recipe_steps:
-#                     new_step = Instruction(step=step["step"], recipe_id=new_recipe.id)
-#                     db.session.add(new_step)
-
-#             else:
-#                 # Recipe with the same title already exists, skip it
-#                 print(f"Recipe '{recipe_title}' already exists in the database.")
-
-#         # Commit all changes for this batch of API recipes
-#         db.session.commit()
-
-#         prueba = (
-#             Recipe.query.filter(Ingredient.name == request.args.get("ingredient"))
-#             .order_by(text("RANDOM()"))
-#             .limit(5)
-#             .all()
-#         )
-#         print("DB Recipes:", prueba)
-
-#         # Update the number of missing recipes
-#         num_missing -= len(api_recipes)
-
-#     return additional_api_recipes
 
 
 @app.route("/recipe", methods=["GET"])
@@ -377,32 +240,6 @@ def show_recipes(ingrediente):
     )
 
 
-# @app.route("/recipe/api/<int:recipe_id>")
-# def api_recipe_detail(recipe_id):
-#     # Fetch the recipe from the API
-#     url = f"https://api.spoonacular.com/recipes/{recipe_id}/information"
-#     params = {"apiKey": spoonacular_api_key}
-
-#     response = requests.get(url, params=params)
-#     api_recipe_data = response.json()
-
-#     # Create a dictionary with the necessary recipe details(this way I don't store recipes in my db, only if a user saves them)
-#     recipe = {
-#         "id": recipe_id,
-#         "title": api_recipe_data["title"],
-#         "image": api_recipe_data["image"],
-#         "extendedIngredients": api_recipe_data.get("extendedIngredients", []),
-#         "analyzedInstructions": api_recipe_data.get("analyzedInstructions", []),
-#     }
-
-#     return render_template(
-#         "recipe_detail.html",
-#         recipe=recipe,
-#         recipe_id=recipe_id,
-#         user=session["user_id"],
-#     )
-
-
 @app.route("/recipe/db/<int:recipe_id>")
 def db_recipe_detail(recipe_id):
     # Fetch the recipe from the database
@@ -439,45 +276,10 @@ def db_recipe_detail(recipe_id):
 # User Interaction
 @app.route("/recipe/<int:recipe_id>/save", methods=["GET", "POST"])
 def save_recipe(recipe_id):
-    # # Fetch recipe details from the API
-    # url = f"https://api.spoonacular.com/recipes/{recipe_id}/information"
-    # params = {"apiKey": spoonacular_api_key}
-
-    # response = requests.get(url, params=params)
-    # recipe_data = response.json()
-
-    # # Extract relevant recipe details
-    # recipe_title = recipe_data["title"]
-    # recipe_image = recipe_data["image"]
-    # ingredient_names = [
-    #     ingredient["name"] for ingredient in recipe_data["extendedIngredients"]
-    # ]
-    # instruction_steps = [
-    #     step["step"] for step in recipe_data["analyzedInstructions"][0]["steps"]
-    # ]
-
     # # Check if the recipe already exists in "recipes" database
     db_recipe = Recipe.query.get(recipe_id)
     # Get the user's ID from the session
     user_id = session.get("user_id")
-
-    # if not db_recipe:
-    #     # Create a new Recipe instance
-    #     new_recipe = Recipe(title=recipe_title, image=recipe_image)
-    #     db.session.add(new_recipe)
-    #     db.session.commit()
-
-    #     # Create Ingredient instances and link them to the Recipe instance
-    #     for ingredient_name in ingredient_names:
-    #         new_ingredient = Ingredient(name=ingredient_name, recipe_id=new_recipe.id)
-    #         db.session.add(new_ingredient)
-    #         db.session.commit()
-
-    #     # Create Instruction instances and link them to the Recipe instance
-    #     for step in instruction_steps:
-    #         new_instruction = Instruction(step=step, recipe_id=new_recipe.id)
-    #         db.session.add(new_instruction)
-    #         db.session.commit()
 
     # Update User's Saved Recipes
     if user_id:
@@ -502,29 +304,6 @@ def save_recipe(recipe_id):
         flash("User not authenticated!", "error")
 
     return redirect(f"/recipe/db/{recipe_id}")
-    # else:
-    #     if user_id:
-    #         user = User.query.get(user_id)
-    #         if user:
-    #             db_recipe = Recipe.query.filter_by(title=recipe_title).first()
-    #             # Check if the recipe already exists in "saved_recipes" database
-    #             db_saved_recipe = SavedRecipe.query.filter_by(
-    #                 user_id=user_id, recipe_id=db_recipe.id
-    #             ).first()
-    #             if not db_saved_recipe:
-    #                 saved_recipe = SavedRecipe(recipe_id=db_recipe.id, user_id=user_id)
-    #                 # Swap recipe and user
-    #                 db.session.add(saved_recipe)
-    #                 db.session.commit()
-    #                 flash("Recipe saved successfully!", "success")
-    #             else:
-    #                 flash("Recipe is already saved!", "info")
-
-    #         else:
-    #             flash("User not found!", "error")
-    #     else:
-    #         flash("User not authenticated!", "error")
-    # return redirect(f"/recipe/db/{db_recipe.id}")
 
 
 @app.route("/recipe/<int:recipe_id>/unsave")

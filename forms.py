@@ -4,8 +4,6 @@ from wtforms import (
     PasswordField,
     TextAreaField,
     SubmitField,
-    FieldList,
-    FormField,
 )
 from wtforms.validators import InputRequired, Email, DataRequired
 
@@ -32,11 +30,3 @@ class RecipeForm(FlaskForm):
     image = StringField("Image_URL")
     ingredient = StringField("Ingredient")
     step = StringField("Step")
-
-
-# class IngredientsForm(FlaskForm):
-#     ingredient = StringField("Ingredient")
-
-
-# class InstructionsForm(FlaskForm):
-#     step = StringField("Step")
