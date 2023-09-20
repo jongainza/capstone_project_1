@@ -1,5 +1,5 @@
 from unittest import TestCase
-from app import app, db
+from my_app import app, db
 from flask import Flask, session, request, flash
 from models import Comment, User, Recipe
 
