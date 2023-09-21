@@ -31,7 +31,7 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 import requests, json
 from sqlalchemy import or_, func, text
 from datetime import datetime
-import random
+import random, os
 
 
 spoonacular_api_key = "35a15401df8045c189874b3ddcacadbb"
@@ -40,7 +40,8 @@ spoonacular_api_key = "35a15401df8045c189874b3ddcacadbb"
 # "f89f72907ab54854aa13dcf946a10079"
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///foodie_db"
+# app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///foodie_db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.app_context().push()
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
