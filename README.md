@@ -6,7 +6,7 @@ Welcome to Foodie Delights, my go-to destination for culinary exploration and re
 
 ## Try It Out
 
-You can experience Foodie Delights live at [https://foodie-delights.onrender.com](https://foodie-delights.onrender.com).
+You can experience Foodie Delights live at [https://foodiedelights.onrender.com/](https://foodiedelights.onrender.com/).
 
 ## Features
 
