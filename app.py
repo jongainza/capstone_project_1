@@ -34,14 +34,15 @@ from datetime import datetime
 import random, os
 
 
-spoonacular_api_key = "35a15401df8045c189874b3ddcacadbb"
-#
+spoonacular_api_key = "f89f72907ab54854aa13dcf946a10079"
+#  "35a15401df8045c189874b3ddcacadbb"
 # "9161efe8f1dc4b55b016c30584e8209c"
-# "f89f72907ab54854aa13dcf946a10079"
+#
 
 app = Flask(__name__)
 # app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///foodie_db"
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+# postgres://foodie_db_ju9k_user:sUibQ831yr5dtjFpXwh8NA2pJF0kINhu@dpg-ck65h4gs0i2c73df5hm0-a.oregon-postgres.render.com/foodie_db_ju9k
 app.app_context().push()
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
@@ -169,7 +170,7 @@ def search_recipes():
     ingrediente = request.args.get("ingredient")
 
     # Fetch a batch of random API recipes, up to the number of missing recipes
-    batch_size = 40
+    batch_size = 20
     api_recipes = requests.get(
         f"https://api.spoonacular.com/recipes/findByIngredients",
         params={
